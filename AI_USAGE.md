@@ -83,3 +83,37 @@ dio and my ApiEndpoints class from core/network. Two methods:
    5.11). `dart analyze` on data + core: no issues.
    **Action:** Accepted as-is — reviewed the error mapping logic, confirmed it correctly separates
    network vs server failures and reuses existing exception types as instructed.
+
+---
+
+## Prompt: Build the repository implementation (remote + local + NetworkInfo)
+
+**Full prompt:** Okay now let's build the repository implementation, in
+lib/features/exchange_rates/data/repositories/. It implements ExchangeRatesRepository, and should
+use the remote data source, local data source, and NetworkInfo (I already built it).
+For getLatestRates: check if we're online first. If yes, fetch today's rates and yesterday's rates (
+need both to calculate daily change), build the CurrencyRate list for the requested 5 currencies
+with inverted rates, save the raw response to cache, return it. If we're offline, just load from
+cache instead - if cache is empty too, let that error up. Also if the remote call fails with a
+network error even though we thought we were online, fall back to cache too instead of just failing.
+For getRatesForDate just call the remote fetch directly, no caching needed, let errors up.
+Lastly, I already created tracked_currencies.dart with a list (code + name required ones). Use that
+in the repository to know which currencies to build CurrencyRate entities for. Summarize all when
+done specially offline part and add an entry to AI_USAGE.md
+**AI response summary:** Created
+`lib/features/exchange_rates/data/repositories/exchange_rates_repository_impl.dart` implementing
+`ExchangeRatesRepository` with `(remote, local, networkInfo)` positional constructor (matches
+existing impls' style). `getLatestRates`: if `NetworkInfo.isConnected`, `Future.wait`s
+`fetchLatestRates()` + `fetchRatesForDate(yesterday)`, caches today's raw body via
+`local.cacheRates`, then builds the `CurrencyRate` list; a `NetworkException` mid-fetch is caught
+and falls through to the cache; `ServerException` is left to propagate. Offline goes straight to
+cache. Cache path builds with `DailyChange.zero()` (no cached yesterday body to diff against) and
+maps a corrupt cache to `CacheException`; an empty cache's `CacheException` propagates.
+`getRatesForDate` just calls the remote and inverts the `egp` map to `Map<String,double>`, errors
+uncaught. Helpers: `_rawRates` (extracts `egp`, drops non-positive/non-numeric), `_dailyChange` (
+diffs in inverted "EGP per unit" terms for amount + percent), `_reportedDate` (parses the body's
+`date`, defaults to now), `_toEgpPerUnit` (1/raw). Uses `TrackedCurrencies.all` for the currency
+set + names. Switched from named to positional constructor to clear a `prefer_initializing_formals`
+hint. `dart analyze lib`: no issues.
+**Action:** Accepted as-is — reviewed the offline fallback flow, confirmed it correctly
+distinguishes network failures from server failures.
