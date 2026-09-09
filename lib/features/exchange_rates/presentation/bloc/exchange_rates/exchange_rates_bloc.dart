@@ -1,7 +1,7 @@
 import 'package:currency_exchange_tracker/core/error/exceptions.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/usecases/get_latest_rates.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'exchange_rates_event.dart';
 import 'exchange_rates_state.dart';
 
 class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {

@@ -1,7 +1,7 @@
 import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
-import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates_bloc.dart';
-import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates_event.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_bloc.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
