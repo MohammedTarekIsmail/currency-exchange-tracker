@@ -1,4 +1,6 @@
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/screens/exchange_rates_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'core/theme/app_theme.dart';
 import 'di/injection_container.dart';
 
 void main() async {
@@ -14,13 +16,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Currency Exchange Tracker',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(child: Text('Exchange rates screen will be here')),
-      ),
+      theme: AppTheme.light,
+      home: const ExchangeRatesListScreen(),
     );
   }
 }
