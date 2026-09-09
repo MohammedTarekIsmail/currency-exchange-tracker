@@ -23,7 +23,7 @@ class HistoricalRateChartLoading extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.chartPlaceholderFill,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
@@ -37,7 +37,7 @@ class HistoricalRateChartLoading extends StatelessWidget {
                       width: 26,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: AppColors.chartPlaceholderFill,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),

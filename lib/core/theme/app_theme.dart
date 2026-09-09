@@ -9,6 +9,13 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
       scaffoldBackgroundColor: AppColors.background,
       useMaterial3: true,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        foregroundColor: Colors.black87,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+      ),
     );
   }
 }

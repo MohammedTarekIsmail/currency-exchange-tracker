@@ -7,6 +7,7 @@ import 'package:currency_exchange_tracker/features/exchange_rates/presentation/w
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/error_retry_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'exchange_rate_list_loading.dart';
 
 class ExchangeRatesListContent extends StatelessWidget {
   const ExchangeRatesListContent({super.key});
@@ -16,7 +17,7 @@ class ExchangeRatesListContent extends StatelessWidget {
     return BlocBuilder<ExchangeRatesBloc, ExchangeRatesState>(
       builder: (context, state) {
         if (state is ExchangeRatesLoading || state is ExchangeRatesInitial) {
-          return const Center(child: CircularProgressIndicator());
+          return const ExchangeRatesListLoading();
         }
 
         if (state is ExchangeRatesError) {

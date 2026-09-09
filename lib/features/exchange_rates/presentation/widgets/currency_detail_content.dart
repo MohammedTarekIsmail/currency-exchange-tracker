@@ -1,3 +1,4 @@
+import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/currency_rate.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_bloc.dart';
@@ -30,23 +31,35 @@ class CurrencyDetailContent extends StatelessWidget {
           const Gap(12),
           BlocBuilder<CurrencyDetailBloc, CurrencyDetailState>(
             builder: (context, state) {
+              Widget chartContent;
               if (state is ChartLoaded) {
-                return HistoricalRateChart(points: state.points);
-              }
-              if (state is ChartError) {
-                return SizedBox(
+                chartContent = HistoricalRateChart(points: state.points);
+              } else if (state is ChartError) {
+                chartContent = SizedBox(
                   height: kChartHeight,
                   child: ErrorRetryView(
                     message: state.message,
                     icon: Icons.show_chart,
-                    onRetry: () => context
-                        .read<CurrencyDetailBloc>()
-                        .add(FetchHistoricalRates(rate.code)),
+                    onRetry: () => context.read<CurrencyDetailBloc>().add(
+                      FetchHistoricalRates(rate.code),
+                    ),
                   ),
                 );
+              } else {
+                chartContent = const HistoricalRateChartLoading();
               }
-              // CurrencyDetailInitial / ChartLoading
-              return const HistoricalRateChartLoading();
+
+              return Card(
+                color: AppColors.white,
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: chartContent,
+                ),
+              );
             },
           ),
         ],
@@ -66,36 +79,58 @@ class _RateSummary extends StatelessWidget {
     final change = rate.dailyChange;
     final sign = change.amount > 0 ? '+' : '';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '1 ${rate.code} = ${rate.rate.toStringAsFixed(2)} EGP',
-          style: AppTextStyles.detailRate,
-        ),
-        const Gap(8),
-        Row(
+    return Card(
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(change.icon, size: 18, color: change.color),
-            const Gap(4),
             Text(
-              '$sign${change.amount.toStringAsFixed(2)} EGP '
-              '($sign${change.percent.toStringAsFixed(2)}%)',
-              style: AppTextStyles.changeValue.copyWith(
-                color: change.color,
-                fontSize: 14,
-              ),
+              '1 ${rate.code} = ${rate.rate.toStringAsFixed(2)} EGP',
+              style: AppTextStyles.detailRate,
             ),
-            const Gap(6),
-            const Text('today', style: AppTextStyles.currencyCode),
+            const Gap(10),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: change.color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(change.icon, size: 16, color: change.color),
+                      const Gap(4),
+                      Text(
+                        '$sign${change.amount.toStringAsFixed(2)} EGP '
+                        '($sign${change.percent.toStringAsFixed(2)}%)',
+                        style: AppTextStyles.changeValue.copyWith(
+                          color: change.color,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Gap(8),
+                const Text('today', style: AppTextStyles.currencyCode),
+              ],
+            ),
+            const Gap(12),
+            Text(
+              'Last updated ${DateFormat.yMMMMd().format(rate.lastUpdated)}',
+              style: AppTextStyles.currencyCode,
+            ),
           ],
         ),
-        const Gap(10),
-        Text(
-          'Last updated ${DateFormat.yMMMMd().format(rate.lastUpdated)}',
-          style: AppTextStyles.currencyCode,
-        ),
-      ],
+      ),
     );
   }
 }
