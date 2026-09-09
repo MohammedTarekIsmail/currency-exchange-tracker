@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:currency_exchange_tracker/core/error/exceptions.dart';
+import 'package:currency_exchange_tracker/core/network/network_info.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/usecases/get_latest_rates.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,12 +9,29 @@ import 'exchange_rates_state.dart';
 
 class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
   final GetLatestRates getLatestRates;
+  final NetworkInfo networkInfo;
 
-  ExchangeRatesBloc(this.getLatestRates) : super(ExchangeRatesInitial()) {
+  StreamSubscription<bool>? _connectivitySubscription;
+  bool _wasOffline = false;
+
+  ExchangeRatesBloc(this.getLatestRates, this.networkInfo)
+      : super(ExchangeRatesInitial()) {
     on<ExchangeRatesStarted>(_onStarted);
     on<ExchangeRatesRefreshed>(_onRefreshed);
+
+    _connectivitySubscription = networkInfo.onConnectivityChanged.listen((isConnected) {
+      if (isConnected && _wasOffline) {
+        add(ExchangeRatesRefreshed());
+      }
+      _wasOffline = !isConnected;
+    });
   }
 
+  @override
+  Future<void> close() {
+    _connectivitySubscription?.cancel();
+    return super.close();
+  }
   Future<void> _onStarted(ExchangeRatesStarted event,
       Emitter<ExchangeRatesState> emit,) async {
     emit(ExchangeRatesLoading());
