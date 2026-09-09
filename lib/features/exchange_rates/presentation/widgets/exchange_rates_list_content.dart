@@ -1,6 +1,7 @@
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_bloc.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_state.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/screens/currency_detail_screen.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/currency_rate_list_item.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/exchange_rate_error_view.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,17 @@ class ExchangeRatesListContent extends StatelessWidget {
               itemCount: state.rates.length,
               itemBuilder: (context, index) {
                 final rate = state.rates[index];
-                return CurrencyRateListItem(rate: rate, onTap: () {});
+                return CurrencyRateListItem(
+                  rate: rate,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CurrencyDetailScreen(rate: rate),
+                      ),
+                    );
+                  },
+                );
               },
             ),
           );

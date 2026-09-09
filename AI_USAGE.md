@@ -117,3 +117,61 @@ set + names. Switched from named to positional constructor to clear a `prefer_in
 hint. `dart analyze lib`: no issues.
 **Action:** Accepted as-is — reviewed the offline fallback flow, confirmed it correctly
 distinguishes network failures from server failures.
+
+---
+
+## Prompt: Build the historical chart widget + shimmer loading version
+
+**Full prompt:** Now analyze what has been done in presentation layer and then let's build the
+historical chart widget for the currency detail screen. Use fl_chart for a line chart. Create a
+widget called HistoricalRateChart that takes a list of HistoricalRatePoint (date + rate) and renders
+a line chart showing the 7-day trend. X-axis should show short date labels, Y-axis shows the rate
+value. Make sure the chart doesn't crash or look broken if there are fewer than 7 points (in case
+some days were skipped due to missing data). Also create a loading version using the shimmer
+package - a placeholder shaped like the chart area shown while data is being fetched. Add an entry
+to AI_USAGE.md
+**AI response summary:** Analysed the presentation layer: the exchange-rates list feature is fully
+wired (bloc/state/event/screen/list content/list item/error view); the currency-detail feature has
+`CurrencyDetailBloc` emitting `ChartLoading`/`ChartLoaded(points)`/`ChartError`, but
+`CurrencyDetailContent` is still a stub ("Chart coming next") with no `BlocBuilder` — so the new
+chart isn't wired in yet (left for a follow-up step, not in this prompt's scope). Created
+`lib/features/exchange_rates/presentation/widgets/historical_rate_chart.dart` with two widgets:
+`HistoricalRateChart(points)` — fl_chart `LineChart`, x = point index, y = rate; bottom axis shows
+`DateFormat('MMM d')` labels (only at integer indices in range), left axis shows adaptive-precision
+rate labels (skipping the top/bottom edge values), curved line with `preventCurveOverShooting`,
+dots, faint fill, and a touch tooltip (date + rate). Robustness for <7 points: empty → friendly
+placeholder; 1 point → `maxX` widened to 1.0 so `minX != maxX`; flat series → Y padding derived from
+the value so `yInterval > 0` (guarded with `safeYInterval`); defensive re-sort by date.
+`HistoricalRateChartLoading` — `Shimmer.fromColors` over a chart-height block + a row of 7 faux
+date-label boxes; shares a `_kChartHeight = 220` constant with the chart so the screen doesn't jump.
+Verified fl_chart 1.2.0 API against the installed package source (`SideTitleWidget(meta:)`,
+`TitleMeta.min/max`, `LineTouchTooltipData.getTooltipColor`/`tooltipBorderRadius`). `dart analyze`
+on the file: no issues.
+**Action:** Edited — reviewed and confirmed the chart logic and edge-case handling (
+empty/single-point/flat series) were correct, but found the hardcoded colors didn't use the app's
+theme system and the file was too large for one widget. Split into chart_axis_label.dart,
+chart_bottom_titles.dart, chart_left_titles.dart, historical_rate_chart.dart, and
+historical_rate_chart_loading.dart. Moved hardcoded colors into AppColors, added a missing
+chartAxisLabel text style to AppTextStyles, added "Date" and "Rate (EGP)" axis titles which weren't
+in the original, and replaced SizedBox spacing with Gap for consistency with the rest of the
+codebase
+
+---
+
+## Prompt: Wire the chart widgets into the currency detail screen
+
+**Full prompt:** wire them
+**AI response summary:** Rewrote
+`lib/features/exchange_rates/presentation/widgets/currency_detail_content.dart`. Replaced the stub
+with a `SingleChildScrollView` containing: a `_RateSummary` section (private widget) showing
+`1 CODE = rate EGP`, the daily change (absolute + percent, colour-coded via
+`DailyChange.isEgpStrengthening`/`isEgpWeakening` with an up/down/flat icon), and
+`Last updated <DateFormat.yMMMMd()>`; a "Last 7 days" heading; and a
+`BlocBuilder<CurrencyDetailBloc, CurrencyDetailState>` mapping
+`ChartLoaded → HistoricalRateChart(points:)`, `ChartError → _ChartErrorView` (icon + message + Retry
+that re-dispatches `FetchHistoricalRates(rate.code)`), and `CurrencyDetailInitial`/
+`ChartLoading → HistoricalRateChartLoading()`. The bloc is already provided by
+`CurrencyDetailScreen`. `dart analyze lib`: no issues.
+**Action:** Accepted as-is — reviewed the BlocBuilder state mapping (ChartLoading/Initial → shimmer,
+ChartLoaded → chart, ChartError → error view with working retry) and the reformatted header (
+color-coded change, intl-formatted date). No issues found; confirmed working visually on device.

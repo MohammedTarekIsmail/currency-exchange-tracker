@@ -17,4 +17,12 @@ class AppColors {
 
   // Error/status
   static const Color error = Colors.red;
+
+  // Chart-specific
+  static const Color chartGridLine = Colors.black12;
+  static const Color chartTooltipBackground = Colors.black87;
+  static const Color chartTooltipText = Colors.white;
+  static const Color shimmerBase = Color(0xFFE0E0E0);
+  static const Color shimmerHighlight = Color(0xFFF5F5F5);
+  static const Color chartPlaceholderFill = Colors.white;
 }

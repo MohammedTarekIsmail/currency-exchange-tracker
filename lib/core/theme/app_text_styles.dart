@@ -27,4 +27,9 @@ class AppTextStyles {
   static const TextStyle changeValue = TextStyle(fontSize: 12);
 
   static const TextStyle errorMessage = TextStyle(fontSize: 14);
+
+  static const TextStyle chartAxisLabel = TextStyle(
+    fontSize: 10,
+    color: AppColors.textSecondary,
+  );
 }
