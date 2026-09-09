@@ -17,9 +17,7 @@ class DailyChange extends Equatable {
   const DailyChange({required this.amount, required this.percent});
 
   /// A flat day with no movement.
-  const DailyChange.zero()
-      : amount = 0,
-        percent = 0;
+  const DailyChange.zero() : amount = 0, percent = 0;
 
   final double amount;
   final double percent;

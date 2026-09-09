@@ -1,6 +1,6 @@
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/currency_rate.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/daily_change_style.dart';
 import 'package:flutter/material.dart';
 
 class CurrencyRateListItem extends StatelessWidget {
@@ -16,12 +16,6 @@ class CurrencyRateListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final change = rate.dailyChange;
-    final color = change.isEgpStrengthening
-        ? AppColors.strengthening
-        : change.isEgpWeakening
-        ? AppColors.weakening
-        : AppColors.unchanged;
-
     final sign = change.amount > 0 ? '+' : '';
 
     return ListTile(
@@ -39,7 +33,7 @@ class CurrencyRateListItem extends StatelessWidget {
           ),
           Text(
             '$sign${change.amount.toStringAsFixed(2)} ($sign${change.percent.toStringAsFixed(2)}%)',
-            style: AppTextStyles.changeValue.copyWith(color: color),
+            style: AppTextStyles.changeValue.copyWith(color: change.color),
           ),
         ],
       ),

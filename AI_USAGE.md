@@ -210,3 +210,41 @@ color-coded change, intl-formatted date). No issues found; confirmed working vis
        **Action:** Accepted as-is — reviewed the repository changes, confirmed cachedAt
        correctly sits outside the FormatException guard, and error propagation (empty/corrupt cache,
        server exceptions) is unchanged from before.
+
+---
+
+## Prompt: Clean up duplication (colour/icon getters, merged error view, styles, dead code)
+
+**Full prompt:** Let's clean up some duplication. A few things:
+
+1) The strengthening/weakening color and icon logic is copy-pasted in both CurrencyRateListItem
+   and _RateSummary. Pull that into DailyChange itself (like a color getter and an icon getter) and
+   have both widgets just use that instead of their own inline logic.
+2) We have got two separate error view widgets (ExchangeRatesErrorView and _ChartErrorView) that do
+   basically the same thing with slightly different icons and button styles. Merge them into one
+   reusable widget that takes a message, onRetry, and optionally lets you override the icon.
+3) _RateSummary has a hardcoded TextStyle(fontSize: 24, bold) instead of using AppTextStyles like
+   everywhere else. Add a style for that and use it.
+4) Delete failures.dart, nothing uses it.
+5) Remove unused text styles and colors
+   Walk me through the error view merge specifically since that's the trickiest part. Add an entry
+   to AI_USAGE.md.
+   **AI response summary:** (1) Added `DailyChange.color` (green/red/grey via `AppColors`) and
+   `DailyChange.icon` (`arrow_downward`/`arrow_upward`/`remove`) getters; `daily_change.dart` now
+   imports `flutter/material` + `AppColors` (noted the domain→Flutter coupling as a tradeoff for the
+   user to weigh). `CurrencyRateListItem` and `_RateSummary` dropped their inline ternary /
+   `_changeColor`/`_changeIcon` helpers and use `change.color` / `change.icon`; both lost their
+   now-unused `app_colors`/`daily_change` imports. (2) New `error_retry_view.dart` —
+   `ErrorRetryView({message, onRetry, icon = Icons.error_outline})`, layout-neutral (
+   `Center > Padding > Column(min)`); deleted `exchange_rate_error_view.dart` and the private
+   `_ChartErrorView`. Rates list passes `onRetry: () => ...add(ExchangeRatesStarted())` (was
+   hardcoded inside the old widget); detail screen wraps it in `SizedBox(height: kChartHeight, ...)`
+   with `icon: Icons.show_chart`. Unified on `ElevatedButton` + `AppColors.error` icon +
+   `errorMessage` style. (3) Added `AppTextStyles.detailRate` (24/bold); `_RateSummary` uses it. (4)
+   Deleted `lib/core/error/failures.dart` (no references). (5) Removed unused
+   `AppTextStyles.currencyName` and `AppColors.textPrimary`; everything else still has a referent (
+   movement colours now referenced from `DailyChange`). `dart analyze lib` and `dart analyze test`:
+   no issues.
+   **Action:** Edited — everything was fine except the color/icon getters, which put Flutter
+   imports in the domain layer. Moved that logic into a presentation extension instead, so the
+   domain stays pure Dart.

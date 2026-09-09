@@ -12,7 +12,6 @@ class AppColors {
   static const Color unchanged = Colors.grey;
 
   // Text
-  static const Color textPrimary = Colors.black87;
   static const Color textSecondary = Colors.black54;
 
   // Error/status

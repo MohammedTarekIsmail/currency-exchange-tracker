@@ -9,9 +9,10 @@ class AppTextStyles {
     fontWeight: FontWeight.bold,
   );
 
-  static const TextStyle currencyName = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
+  /// Hero rate line on the currency detail screen ("1 USD = 52.01 EGP").
+  static const TextStyle detailRate = TextStyle(
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
   );
 
   static const TextStyle currencyCode = TextStyle(

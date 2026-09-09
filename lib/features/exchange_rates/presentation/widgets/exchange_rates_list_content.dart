@@ -4,7 +4,7 @@ import 'package:currency_exchange_tracker/features/exchange_rates/presentation/b
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/screens/currency_detail_screen.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/cached_data_banner.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/currency_rate_list_item.dart';
-import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/exchange_rate_error_view.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/error_retry_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,7 +20,11 @@ class ExchangeRatesListContent extends StatelessWidget {
         }
 
         if (state is ExchangeRatesError) {
-          return ExchangeRateErrorView(message: state.message);
+          return ErrorRetryView(
+            message: state.message,
+            onRetry: () =>
+                context.read<ExchangeRatesBloc>().add(ExchangeRatesStarted()),
+          );
         }
 
         if (state is ExchangeRatesEmpty) {
