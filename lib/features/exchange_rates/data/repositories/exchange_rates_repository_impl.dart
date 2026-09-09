@@ -7,17 +7,23 @@ import 'package:currency_exchange_tracker/features/exchange_rates/data/datasourc
 import 'package:currency_exchange_tracker/features/exchange_rates/data/models/currency_rate_model.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/currency_rate.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/daily_change.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/exchange_rates_snapshot.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/repositories/exchange_rates_repository.dart';
 
 /// Coordinates the remote API, the local cache and connectivity into the
 /// domain-facing [ExchangeRatesRepository] contract.
 ///
-/// Offline strategy for [getLatestRates]:
+/// Offline strategy for [getLatestRates] (result carried in an
+/// [ExchangeRatesSnapshot] whose `isFromCache` / `cachedAt` tell the UI where
+/// the data came from):
 ///  * Online  -> fetch today + yesterday, compute the daily change, cache
-///    today's raw response, return fresh data.
+///    today's raw response, return fresh data (`isFromCache: false`,
+///    `cachedAt: null`).
 ///  * Online but the request fails on connectivity -> serve the cache instead
 ///    of surfacing the error (the network dropped mid-flight).
 ///  * Offline -> serve the cache directly.
+///  * Both cache-fallback paths report `isFromCache: true` with `cachedAt`
+///    from [ExchangeRatesLocalDataSource.getLastCachedTime].
 ///  * Cache empty in either fallback -> the [CacheException] propagates so the
 ///    presentation layer can show a real error state.
 ///
@@ -31,7 +37,7 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
   final NetworkInfo _networkInfo;
 
   @override
-  Future<List<CurrencyRate>> getLatestRates() async {
+  Future<ExchangeRatesSnapshot> getLatestRates() async {
     if (await _networkInfo.isConnected) {
       return _fetchCacheAndBuildLatest();
     }
@@ -48,7 +54,7 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
     );
   }
 
-  Future<List<CurrencyRate>> _fetchCacheAndBuildLatest() async {
+  Future<ExchangeRatesSnapshot> _fetchCacheAndBuildLatest() async {
     final now = DateTime.now();
     final yesterday = DateTime(
       now.year,
@@ -66,7 +72,11 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
 
       await _local.cacheRates(todayBody);
 
-      return _buildRates(todayBody: todayBody, yesterdayBody: yesterdayBody);
+      return ExchangeRatesSnapshot(
+        rates: _buildRates(todayBody: todayBody, yesterdayBody: yesterdayBody),
+        isFromCache: false,
+        cachedAt: null,
+      );
     } on NetworkException {
       // We thought we were online, but the call still failed on connectivity.
       // Fall back to the last good data rather than failing outright.
@@ -74,16 +84,23 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
     }
   }
 
-  /// Builds the tracked list from cached data. Without a cached "yesterday"
-  /// response the daily change can't be recomputed offline, so it shows as
-  /// flat until connectivity returns and a fresh fetch fills it in.
-  Future<List<CurrencyRate>> _ratesFromCache() async {
+  /// Builds a cache-backed snapshot. Without a cached "yesterday" response the
+  /// daily change can't be recomputed offline, so it shows as flat until
+  /// connectivity returns and a fresh fetch fills it in.
+  Future<ExchangeRatesSnapshot> _ratesFromCache() async {
     final cachedBody = await _local.getCachedRates(); // CacheException if empty
+    final List<CurrencyRate> rates;
     try {
-      return _buildRates(todayBody: cachedBody);
+      rates = _buildRates(todayBody: cachedBody);
     } on FormatException {
       throw const CacheException('Cached rates are corrupted.');
     }
+
+    return ExchangeRatesSnapshot(
+      rates: rates,
+      isFromCache: true,
+      cachedAt: await _local.getLastCachedTime(),
+    );
   }
 
   List<CurrencyRate> _buildRates({

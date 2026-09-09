@@ -25,11 +25,17 @@ class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
 
   Future<void> _fetchRates(Emitter<ExchangeRatesState> emit) async {
     try {
-      final rates = await getLatestRates();
-      if (rates.isEmpty) {
+      final snapshot = await getLatestRates();
+      if (snapshot.rates.isEmpty) {
         emit(ExchangeRatesEmpty());
       } else {
-        emit(ExchangeRatesLoaded(rates));
+        emit(
+          ExchangeRatesLoaded(
+            snapshot.rates,
+            isFromCache: snapshot.isFromCache,
+            cachedAt: snapshot.cachedAt,
+          ),
+        );
       }
     } on NetworkException catch (e) {
       emit(ExchangeRatesError(e.message));

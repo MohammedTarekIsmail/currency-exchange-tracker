@@ -175,3 +175,38 @@ that re-dispatches `FetchHistoricalRates(rate.code)`), and `CurrencyDetailInitia
 **Action:** Accepted as-is — reviewed the BlocBuilder state mapping (ChartLoading/Initial → shimmer,
 ChartLoaded → chart, ChartError → error view with working retry) and the reformatted header (
 color-coded change, intl-formatted date). No issues found; confirmed working visually on device.
+
+---
+
+## Prompt: Return ExchangeRatesSnapshot from getLatestRates (cache metadata through to the bloc)
+
+**Full prompt:** I already created ExchangeRatesSnapshot in domain/entities/. Now:
+
+1) Change ExchangeRatesRepository.getLatestRates() to return Future<ExchangeRatesSnapshot> instead
+   of Future<List<CurrencyRate>>.
+2) Update ExchangeRatesRepositoryImpl: live-fetch success returns isFromCache: false, cachedAt:
+   null. Both cache-fallback paths return isFromCache: true with cachedAt from
+   local.getLastCachedTime().
+3) Update GetLatestRates use case to match the new return type.
+4) Update ExchangeRatesBloc so ExchangeRatesLoaded carries isFromCache and cachedAt alongside rates.
+   Explain the changes to the repository specifically. Add an entry to AI_USAGE.md.
+   **AI response summary:** (1) `ExchangeRatesRepository.getLatestRates()` now returns
+   `Future<ExchangeRatesSnapshot>` (import + doc updated). (2) `ExchangeRatesRepositoryImpl`:
+   `getLatestRates` and both private helpers now return `Future<ExchangeRatesSnapshot>`.
+   `_fetchCacheAndBuildLatest` success wraps `_buildRates(...)` in
+   `ExchangeRatesSnapshot(isFromCache: false, cachedAt: null)`; its `on NetworkException` still
+   delegates to `_ratesFromCache`. `_ratesFromCache` builds the list (corrupt-cache
+   `FormatException` still mapped to `CacheException`, empty-cache `CacheException` from
+   `getCachedRates()` still propagates), then returns
+   `ExchangeRatesSnapshot(isFromCache: true, cachedAt: await _local.getLastCachedTime())`.
+   `_buildRates` unchanged (still returns `List<CurrencyRate>`). Class doc's offline-strategy
+   bullets updated to describe the snapshot flags. (3) `GetLatestRates.call()` →
+   `Future<ExchangeRatesSnapshot>` (swapped `currency_rate` import for `exchange_rates_snapshot`). (
+    4) `ExchangeRatesLoaded` gained `isFromCache` (defaults false) + `cachedAt` named params, both
+       added to `props`; `ExchangeRatesBloc._fetchRates` reads `snapshot.rates`/`isFromCache`/
+       `cachedAt`
+       and passes them through. `exchange_rates_list_content.dart` only reads `state.rates`, so no
+       widget change. `dart analyze lib`: no issues.
+       **Action:** Accepted as-is — reviewed the repository changes, confirmed cachedAt
+       correctly sits outside the FormatException guard, and error propagation (empty/corrupt cache,
+       server exceptions) is unchanged from before.

@@ -15,10 +15,19 @@ class ExchangeRatesLoading extends ExchangeRatesState {}
 class ExchangeRatesLoaded extends ExchangeRatesState {
   final List<CurrencyRate> rates;
 
-  const ExchangeRatesLoaded(this.rates);
+  /// Whether [rates] were served from the offline cache rather than the live
+  /// API, and — when they were — the time they were cached.
+  final bool isFromCache;
+  final DateTime? cachedAt;
+
+  const ExchangeRatesLoaded(
+    this.rates, {
+    this.isFromCache = false,
+    this.cachedAt,
+  });
 
   @override
-  List<Object?> get props => [rates];
+  List<Object?> get props => [rates, isFromCache, cachedAt];
 }
 
 class ExchangeRatesError extends ExchangeRatesState {
