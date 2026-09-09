@@ -53,3 +53,33 @@ only, no Flutter or http:
    **Action:** Accepted as-is — reviewed the historical date range (starts from today), had a
    concern that the historical endpoint might not have today's date published yet, tested directly
    against the live API and confirmed today's date returns valid data. No fix needed.
+
+---
+
+## Prompt: Build the remote data source (dio + ApiEndpoints, existing exceptions)
+
+**Full prompt:** Now build the remote data source (I have created model so check it). It should use
+dio and my ApiEndpoints class from core/network. Two methods:
+
+1) fetchLatestRates() returns the raw json map of rates for today, using ApiEndpoints.latestRates()
+2) fetchRatesForDate(date) returns the raw json map for one date, using ApiEndpoints.ratesForDate(
+   date)
+   Wrap dio calls in try-catch: throw NetworkException for connection/timeout errors, throw
+   ServerException for bad status codes or unexpected response shape. Use my existing exception
+   classes from core/error/exceptions.dart, don't create new ones.
+   Explain your reasoning. Add an entry to AI_USAGE.md.
+   **AI response summary:** Created
+   `lib/features/exchange_rates/data/datasources/exchange_rates_remote_data_source.dart` with an
+   abstract `ExchangeRatesRemoteDataSource` and `ExchangeRatesRemoteDataSourceImpl(Dio)`. Both
+   methods return the full decoded response body (`Map<String, dynamic>` —
+   `{ "date": ..., "egp": { ... } }`) so the repository can read the `date` for "last updated"; a
+   shared private `_getRatesBody(url)` does the fetch. Dio calls wrapped in try/catch:
+   `_mapDioException` sends connection/timeout/badCertificate/`unknown`-wrapping-`SocketException` →
+   `NetworkException`, and badResponse/cancel/other `unknown` → `ServerException` (status code
+   included). After a successful call it also guards `statusCode != 200` (in case of a lenient
+   `validateStatus`), non-`Map` payloads, and a missing `egp` object → `ServerException`. Reused
+   `NetworkException`/`ServerException` from `core/error/exceptions.dart`; no new exception types.
+   Had to add `DioExceptionType.transformTimeout` to the timeout branch for exhaustiveness (dio
+   5.11). `dart analyze` on data + core: no issues.
+   **Action:** Accepted as-is — reviewed the error mapping logic, confirmed it correctly separates
+   network vs server failures and reuses existing exception types as instructed.
