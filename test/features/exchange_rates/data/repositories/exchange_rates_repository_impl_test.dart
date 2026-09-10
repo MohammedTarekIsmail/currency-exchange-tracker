@@ -147,6 +147,33 @@ void main() {
       verifyNever(() => local.cacheRates(any()));
     });
 
+    test(
+      "yesterday's failure still returns today's rates, with a flat change",
+      () async {
+        when(
+          () => remote.fetchLatestRates(),
+        ).thenAnswer((_) async => todayBody);
+        when(
+          () => remote.fetchRatesForDate(any()),
+        ).thenThrow(const ServerException('historical endpoint is down'));
+        when(() => local.cacheRates(any())).thenAnswer((_) async {});
+
+        final snapshot = await repository.getLatestRates();
+
+        // Live data, not the cache fallback.
+        expect(snapshot.isFromCache, isFalse);
+        expect(snapshot.rates, hasLength(5));
+        verifyNever(() => local.getCachedRates());
+        verify(() => local.cacheRates(todayBody)).called(1);
+
+        // Rates are real; only the day-over-day comparison is missing.
+        final usd = snapshot.rates.firstWhere((r) => r.code == 'USD');
+        expect(usd.rate, closeTo(50, 1e-9));
+        expect(usd.dailyChange.amount, 0);
+        expect(usd.dailyChange.percent, 0);
+      },
+    );
+
     test('ServerException is rethrown and the cache is not touched', () async {
       when(
         () => remote.fetchLatestRates(),

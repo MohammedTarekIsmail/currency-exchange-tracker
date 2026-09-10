@@ -3,6 +3,7 @@ import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/currency_rate.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/currency_flags.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/daily_change_style.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/rate_format.dart';
 import 'package:flutter/material.dart';
 
 class CurrencyRateListItem extends StatelessWidget {
@@ -60,7 +61,7 @@ class CurrencyRateListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${rate.rate.toStringAsFixed(2)} EGP',
+                    '${formatRate(rate.rate)} EGP',
                     style: AppTextStyles.rateValue,
                   ),
                   const SizedBox(height: 6),
@@ -71,7 +72,8 @@ class CurrencyRateListItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      '$sign${change.amount.toStringAsFixed(2)} ($sign${change.percent.toStringAsFixed(2)}%)',
+                      '$sign${formatChangeAmount(change.amount)} '
+                      '($sign${change.percent.toStringAsFixed(2)}%)',
                       style: AppTextStyles.changeValue.copyWith(color: change.color),
                     ),
                   ),

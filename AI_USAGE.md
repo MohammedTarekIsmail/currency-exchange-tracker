@@ -2,7 +2,7 @@
 
 This document tracks how AI was used throughout this project, end to end.
 Each entry includes: the prompt, what the AI returned, and whether it was
-accepted, edited, or rejected — and why.
+accepted, edited, or rejected — and why. (I used my own personal Claude Pro account.)
 
 ---
 
@@ -39,8 +39,10 @@ only, no Flutter or http:
 5) Use case for historical rates: takes a currency code and days (default 7), grabs the last N
    dates, calls getRatesForDate for all of them at once, pulls out the one currency from each,
    returns it sorted.
-   Walk me through your reasoning as you go. Add an entry to AI_USAGE.md too
-   **AI response summary:** Created 6 files under `lib/features/exchange_rates/domain/`: entities
+
+Walk me through your reasoning as you go. Add an entry to AI_USAGE.md too.
+
+**AI response summary:** Created 6 files under `lib/features/exchange_rates/domain/`: entities
    `DailyChange` (amount + percent value object with `isEgpStrengthening`/`isEgpWeakening` helpers
    encoding the inverted EGP sign semantics), `CurrencyRate` (
    code/name/rate/dailyChange/lastUpdated, Equatable, immutable), `HistoricalRatePoint` (date +
@@ -329,6 +331,7 @@ and `[ChartLoading, ChartError(message)]` table-driven over `NetworkException`/`
 passthrough) + generic `Exception` (fixed "Could not load chart data…" copy). Equatable states
 compared by value; shared `tRates`/`tPoints` list instances reused between stub and expectation.
 `flutter test test/features`: 30/30 pass; `flutter analyze`: clean.
+
 **Action:** Accepted as-is — reviewed both bloc test files, confirmed the connectivity stream stub
 correctly isolates the auto-refresh feature from interfering with other tests, and the
 Refreshed-emits-no-Loading assertion correctly locks in the intended UX behavior.
@@ -340,3 +343,48 @@ Refreshed-emits-no-Loading assertion correctly locks in the intended UX behavior
 **Full prompt:** I added an app icon in assets/images set it and change app name to 'Currecy Echange App'
 **AI response summary:** Confirmed the name spelling first ("Currecy Echange" read as typos); user chose "Currency Exchange App". Renamed the display name in Android `android:label` (AndroidManifest.xml), iOS `CFBundleDisplayName` (Info.plist), Flutter `MaterialApp.title` (main.dart), web `<title>` + `apple-mobile-web-app-title` (index.html), web manifest `name`/`short_name`, and macOS `PRODUCT_NAME` (AppInfo.xcconfig); left bundle IDs / package names untouched. For the icon: added `flutter_launcher_icons: ^0.14.3` to dev_dependencies with a config block pointing at `assets/images/app_icon.png` (1254×1254), `flutter pub get`, then `dart run flutter_launcher_icons` — generated Android mipmaps (mdpi→xxxhdpi) and the full iOS AppIcon set (incl. legacy sizes), `remove_alpha_ios: true`. Web/Windows/macOS icon generation reported "requirements failed" and were skipped (source PNG constraints) — not needed for the mobile assessment. `flutter analyze lib` clean; `flutter test test/features` 30/30 pass.
 **Action:** Accepted as-is.
+
+---
+
+## Prompt: Fix error handling to degrade gracefully instead of failing outright, and fix small-currency precision
+
+**Full prompt:** Doing a review pass and found three things to fix.
+
+First, in getLatestRates, today's and yesterday's requests are both wrapped in one try that only
+catches NetworkException. So if yesterday's call fails with a ServerException, it hides today's
+perfectly good rates behind a full error screen — but yesterday's data is only there for computing
+the daily change, it shouldn't be able to break the whole thing.
+
+Second, GetHistoricalRates has the same issue across the 7 days it fetches — one bad day and the
+whole chart disappears, which also doesn't match what the doc comment already claims it does.
+
+Third, the daily change is shown with a flat 2 decimal places, so JPY's tiny movement renders as "
++0.00" even though it did move.
+
+Fix all three, and add an entry to AI_USAGE.md.
+
+**AI response summary:** Fixed all three. For (1), yesterday's fetch now goes through a helper that
+catches any exception and returns null instead of throwing — today's rate stays live either way, and
+the app already had a fallback for a missing "yesterday" (shows the change as flat). While building
+this, moved both fetch calls inside the try block so they're still fired concurrently, since testing
+caught that a synchronous failure could otherwise slip past the safety net entirely. Updated the
+class doc comment, which had wrongly claimed server errors are never swallowed here.
+
+For (2), each of the 7 days now fails independently instead of taking down the whole chart. If every
+single day fails, that's treated as a real network problem and shown as "no internet" rather than
+the misleading "no data for this currency."
+
+For (3), added a small formatting file that handles all the rate/change number formatting in one
+place instead of scattered logic. The main rate display stays fixed at 2 decimals to match the
+assignment's exact format, but the daily change now scales its precision based on the number's size,
+so tiny movements on currencies like JPY actually show up instead of rounding to zero.
+
+Verified against live rates: JPY's change went from "+0.00 (+0.34%)" to "+0.0011 (+0.34%)";
+USD/EUR/GBP unchanged. Added 11 new tests covering the fallback behavior and the formatting logic.
+All 41 tests pass, dart analyze clean.
+
+**Action:** Accepted as-is — reviewed the fix for the yesterday-fetch and confirmed the self-caught
+concurrency bug was handled correctly (moving both fetches inside the try while keeping them
+concurrent). Confirmed the historical chart correctly distinguishes "some days failed" from "every
+day failed, likely offline." Confirmed the JPY precision fix matches live data and doesn't affect
+the headline rate's fixed format from the spec.

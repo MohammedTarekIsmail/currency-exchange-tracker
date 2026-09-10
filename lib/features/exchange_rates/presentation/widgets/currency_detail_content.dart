@@ -5,6 +5,7 @@ import 'package:currency_exchange_tracker/features/exchange_rates/presentation/b
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_event.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_state.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/daily_change_style.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/rate_format.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/chart/historical_chart_loading.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/chart/historical_rate_chart.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/error_retry_view.dart';
@@ -93,16 +94,21 @@ class _RateSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '1 ${rate.code} = ${rate.rate.toStringAsFixed(2)} EGP',
+              '1 ${rate.code} = ${formatRate(rate.rate)} EGP',
               style: AppTextStyles.detailRate,
             ),
             const Gap(10),
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
-                    color: change.color.withValues(alpha: AppColors.badgeBackgroundOpacity),
+                    color: change.color.withValues(
+                      alpha: AppColors.badgeBackgroundOpacity,
+                    ),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -111,8 +117,8 @@ class _RateSummary extends StatelessWidget {
                       Icon(change.icon, size: 16, color: change.color),
                       const Gap(4),
                       Text(
-                        '$sign${change.amount.toStringAsFixed(2)} EGP '
-                            '($sign${change.percent.toStringAsFixed(2)}%)',
+                        '$sign${formatChangeAmount(change.amount)} EGP '
+                        '($sign${change.percent.toStringAsFixed(2)}%)',
                         style: AppTextStyles.changeValue.copyWith(
                           color: change.color,
                           fontSize: 13,

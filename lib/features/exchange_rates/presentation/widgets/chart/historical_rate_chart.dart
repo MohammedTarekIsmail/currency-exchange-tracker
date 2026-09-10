@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/historical_rate_point.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/rate_format.dart';
 import 'chart_bottom_titles.dart';
 import 'chart_left_titles.dart';
 import 'historical_chart_loading.dart';
@@ -93,7 +94,7 @@ class HistoricalRateChart extends StatelessWidget {
                   for (final spot in touchedSpots)
                     LineTooltipItem(
                       '${DateFormat('MMM d').format(data[spot.x.round().clamp(0, data.length - 1)].date)}\n'
-                          '${ChartLeftTitles.formatRate(spot.y)} EGP',
+                          '${formatAxisRate(spot.y)} EGP',
                       TextStyle(
                         color: AppColors.chartTooltipText,
                         fontSize: 12,

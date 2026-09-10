@@ -101,12 +101,31 @@ void main() {
     },
   );
 
+  test('keeps the days that succeeded when one request fails', () async {
+    when(
+      () => repository.getRatesForDate(dayAgo(0)),
+    ).thenAnswer((_) async => {'usd': 50.0});
+    when(
+      () => repository.getRatesForDate(dayAgo(1)),
+    ).thenThrow(const ServerException('no data for this date'));
+    when(
+      () => repository.getRatesForDate(dayAgo(2)),
+    ).thenAnswer((_) async => {'usd': 52.0});
+
+    final result = await useCase('usd', days: 3);
+
+    expect(result, [
+      HistoricalRatePoint(date: dayAgo(2), rate: 52.0),
+      HistoricalRatePoint(date: dayAgo(0), rate: 50.0),
+    ]);
+  });
+
   group('propagates exceptions from the repository', () {
     for (final exception in <Exception>[
       const NetworkException(),
       const ServerException(),
     ]) {
-      test('rethrows ${exception.runtimeType}', () {
+      test('rethrows ${exception.runtimeType} when every day fails', () {
         when(() => repository.getRatesForDate(any())).thenThrow(exception);
 
         expect(() => useCase('usd'), throwsA(same(exception)));

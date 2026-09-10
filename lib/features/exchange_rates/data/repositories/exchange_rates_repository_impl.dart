@@ -18,7 +18,8 @@ import 'package:currency_exchange_tracker/features/exchange_rates/domain/reposit
 /// the data came from):
 ///  * Online  -> fetch today + yesterday, compute the daily change, cache
 ///    today's raw response, return fresh data (`isFromCache: false`,
-///    `cachedAt: null`).
+///    `cachedAt: null`). Only today's request is load-bearing; if yesterday's
+///    fails the rates are still returned, with the daily change flat.
 ///  * Online but the request fails on connectivity -> serve the cache instead
 ///    of surfacing the error (the network dropped mid-flight).
 ///  * Offline -> serve the cache directly.
@@ -27,8 +28,10 @@ import 'package:currency_exchange_tracker/features/exchange_rates/domain/reposit
 ///  * Cache empty in either fallback -> the [CacheException] propagates so the
 ///    presentation layer can show a real error state.
 ///
-/// Server-side failures ([ServerException]) are never swallowed — only
-/// connectivity problems trigger the cache fallback.
+/// Server-side failures ([ServerException]) on today's request are never
+/// swallowed — only connectivity problems trigger the cache fallback. Failures
+/// on yesterday's request are swallowed by design (see above): it is an
+/// enrichment call, not a source of truth.
 class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
   ExchangeRatesRepositoryImpl(this._remote, this._local, this._networkInfo);
 
@@ -62,13 +65,19 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
       now.day,
     ).subtract(const Duration(days: 1));
 
+    // Both requests go out together, but only today's is required: yesterday's
+    // exists solely to compute the daily change, and _dailyChange already
+    // degrades to flat without it. Letting a failure there abort the whole
+    // fetch would hide today's perfectly good rates behind an error screen.
     try {
-      final bodies = await Future.wait([
-        _remote.fetchLatestRates(),
-        _remote.fetchRatesForDate(yesterday),
-      ]);
-      final todayBody = bodies[0];
-      final yesterdayBody = bodies[1];
+      // Created back to back so both are in flight before the first await —
+      // and inside the try, so a data source that fails synchronously still
+      // reaches the cache fallback below.
+      final todayRequest = _remote.fetchLatestRates();
+      final yesterdayRequest = _fetchRatesForDateOrNull(yesterday);
+
+      final todayBody = await todayRequest;
+      final yesterdayBody = await yesterdayRequest;
 
       await _local.cacheRates(todayBody);
 
@@ -81,6 +90,16 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
       // We thought we were online, but the call still failed on connectivity.
       // Fall back to the last good data rather than failing outright.
       return _ratesFromCache();
+    }
+  }
+
+  /// Best-effort fetch for a single date: any failure becomes `null` so the
+  /// caller can carry on without the daily change rather than failing outright.
+  Future<Map<String, dynamic>?> _fetchRatesForDateOrNull(DateTime date) async {
+    try {
+      return await _remote.fetchRatesForDate(date);
+    } on Exception {
+      return null;
     }
   }
 
