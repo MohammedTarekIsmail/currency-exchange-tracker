@@ -332,3 +332,11 @@ compared by value; shared `tRates`/`tPoints` list instances reused between stub 
 **Action:** Accepted as-is — reviewed both bloc test files, confirmed the connectivity stream stub
 correctly isolates the auto-refresh feature from interfering with other tests, and the
 Refreshed-emits-no-Loading assertion correctly locks in the intended UX behavior.
+
+---
+
+## Prompt: Set app icon from assets/images and rename the app
+
+**Full prompt:** I added an app icon in assets/images set it and change app name to 'Currecy Echange App'
+**AI response summary:** Confirmed the name spelling first ("Currecy Echange" read as typos); user chose "Currency Exchange App". Renamed the display name in Android `android:label` (AndroidManifest.xml), iOS `CFBundleDisplayName` (Info.plist), Flutter `MaterialApp.title` (main.dart), web `<title>` + `apple-mobile-web-app-title` (index.html), web manifest `name`/`short_name`, and macOS `PRODUCT_NAME` (AppInfo.xcconfig); left bundle IDs / package names untouched. For the icon: added `flutter_launcher_icons: ^0.14.3` to dev_dependencies with a config block pointing at `assets/images/app_icon.png` (1254×1254), `flutter pub get`, then `dart run flutter_launcher_icons` — generated Android mipmaps (mdpi→xxxhdpi) and the full iOS AppIcon set (incl. legacy sizes), `remove_alpha_ios: true`. Web/Windows/macOS icon generation reported "requirements failed" and were skipped (source PNG constraints) — not needed for the mobile assessment. `flutter analyze lib` clean; `flutter test test/features` 30/30 pass.
+**Action:** Accepted as-is.

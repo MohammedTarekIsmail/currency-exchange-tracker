@@ -1,6 +1,6 @@
 {
-    "name": "currency_exchange_tracker",
-    "short_name": "currency_exchange_tracker",
+    "name": "Currency Exchange App",
+    "short_name": "Currency Exchange App",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
