@@ -274,3 +274,34 @@ rethrows Network/Server exceptions). A `dayAgo(n)` helper mirrors the use case's
 11/11 pass; `flutter analyze`: clean.
 **Action:** Accepted as-is — reviewed both test files, confirmed correct mocking setup, good
 edge case coverage (missing currency, exception handling, sort order).
+---
+
+## Prompt: Unit tests for ExchangeRatesRepositoryImpl (mocktail)
+
+**Full prompt:** Now test ExchangeRatesRepositoryImpl. Mock the remote data source, local data
+source, and NetworkInfo with mocktail. Cover these cases: when online, it fetches today and
+yesterday, computes the daily change right, caches the response, and returns isFromCache false. When
+offline, it skips the network and just returns cached data with isFromCache true. If the remote call
+fails with a network error while online, it should fall back to cache instead of throwing. If it's a
+server error, it should not fall back, just throw that error. Empty cache throws CacheException.
+Also test getRatesForDate just calls the remote directly, no caching involved. Add an entry to
+AI_USAGE.md.
+**AI response summary:** Created
+`test/features/exchange_rates/data/repositories/exchange_rates_repository_impl_test.dart` — 7 tests,
+mocking `ExchangeRatesRemoteDataSource` / `ExchangeRatesLocalDataSource` / `NetworkInfo`. Fixtures
+are raw "units per 1 EGP" bodies (usd 0.02→50 EGP today, 0.025→40 yesterday) so assertions land on
+round numbers via `closeTo(x, 1e-9)`. Cases: online happy path (verifies `fetchRatesForDate` gets
+the calendar-day-before-today via `captureAny()`, `cacheRates(todayBody)` called once,
+`isFromCache=false`/`cachedAt=null`, 5 rates, USD change = +10 EGP / +25%, EUR flat); offline (
+`isFromCache=true`, `cachedAt` from `getLastCachedTime`, all changes flat since no cached yesterday,
+`verifyNever` on all remote calls + `cacheRates`); online + `NetworkException` → falls back to
+cache, no rethrow, `cacheRates` never called; online + `ServerException` →
+`expectLater(..., throwsA(isA<ServerException>()))` and `getCachedRates` never called; empty cache →
+`CacheException` both offline and via the online+NetworkException fallback path; `getRatesForDate` →
+hits `fetchRatesForDate` directly, inverts the map, and `verifyNever` on `isConnected`/
+`getCachedRates`/`cacheRates`. `setUpAll` registers `DateTime` + `Map<String,dynamic>` fallback
+values. `flutter test test/features`: 18/18 pass (incl. the earlier use-case tests);
+`flutter analyze`: clean.
+**Action:** Action: Accepted as-is — reviewed all 7 tests, confirmed the yesterday-date
+verification, the network-vs-server exception distinction, and the offline/cache-empty paths are all
+correctly covered.
