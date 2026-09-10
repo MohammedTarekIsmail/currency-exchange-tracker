@@ -302,6 +302,33 @@ hits `fetchRatesForDate` directly, inverts the map, and `verifyNever` on `isConn
 `getCachedRates`/`cacheRates`. `setUpAll` registers `DateTime` + `Map<String,dynamic>` fallback
 values. `flutter test test/features`: 18/18 pass (incl. the earlier use-case tests);
 `flutter analyze`: clean.
-**Action:** Action: Accepted as-is — reviewed all 7 tests, confirmed the yesterday-date
+**Action:** Accepted as-is — reviewed all 7 tests, confirmed the yesterday-date
 verification, the network-vs-server exception distinction, and the offline/cache-empty paths are all
 correctly covered.
+---
+
+## Prompt: Bloc tests for ExchangeRatesBloc and CurrencyDetailBloc (bloc_test + mocktail)
+
+**Full prompt:** Next ExchangeRatesBloc, test Started goes Loading then Loaded on success, Loading
+then Empty when the list is empty, and Loading then Error for each exception type. Also test
+Refreshed goes straight to Loaded, no Loading in between. For CurrencyDetailBloc, test the fetch
+event goes ChartLoading then ChartLoaded on success, and ChartLoading then ChartError when the list
+is empty or when it throws. Add an entry to AI_USAGE.md.
+**AI response summary:** Created two `blocTest` files under
+`test/features/exchange_rates/presentation/bloc/`. `exchange_rates_bloc_test.dart` (7 tests): mocks
+`GetLatestRates` + `NetworkInfo`, stubbing `networkInfo.onConnectivityChanged` with
+`Stream<bool>.empty()` in `setUp` so the constructor's reconnect subscription stays silent.
+`ExchangeRatesStarted` → `[Loading, Loaded(tRates)]` on a non-empty snapshot, `[Loading, Empty]` on
+an empty snapshot, and `[Loading, Error(message)]` table-driven over `NetworkException`/
+`ServerException`/`CacheException` (message passed through) plus a generic `Exception` (fixed "
+Something went wrong…" copy). `ExchangeRatesRefreshed` → `expect: [Loaded(tRates)]` only, proving no
+`Loading` on manual refresh. `currency_detail_bloc_test.dart` (5 tests): mocks `GetHistoricalRates`;
+`FetchHistoricalRates('usd')` → `[ChartLoading, ChartLoaded(tPoints)]` on success,
+`[ChartLoading, ChartError('No historical data available for this currency.')]` on an empty list,
+and `[ChartLoading, ChartError(message)]` table-driven over `NetworkException`/`ServerException` (
+passthrough) + generic `Exception` (fixed "Could not load chart data…" copy). Equatable states
+compared by value; shared `tRates`/`tPoints` list instances reused between stub and expectation.
+`flutter test test/features`: 30/30 pass; `flutter analyze`: clean.
+**Action:** Accepted as-is — reviewed both bloc test files, confirmed the connectivity stream stub
+correctly isolates the auto-refresh feature from interfering with other tests, and the
+Refreshed-emits-no-Loading assertion correctly locks in the intended UX behavior.
