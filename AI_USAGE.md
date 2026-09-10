@@ -274,8 +274,10 @@ rethrows Network/Server exceptions). A `dayAgo(n)` helper mirrors the use case's
 `expect(() => useCase(...), throwsA(same(exception)))` — the closure form, needed because
 `GetLatestRates.call` is a non-async arrow that throws synchronously. `flutter test` on the folder:
 11/11 pass; `flutter analyze`: clean.
-**Action:** Accepted as-is — reviewed both test files, confirmed correct mocking setup, good
-edge case coverage (missing currency, exception handling, sort order).
+
+**Action:** Accepted as-is — reviewed both test files, confirmed correct mocking setup, good edge
+case coverage (missing currency, exception handling, sort order).
+
 ---
 
 ## Prompt: Unit tests for ExchangeRatesRepositoryImpl (mocktail)
@@ -304,9 +306,11 @@ hits `fetchRatesForDate` directly, inverts the map, and `verifyNever` on `isConn
 `getCachedRates`/`cacheRates`. `setUpAll` registers `DateTime` + `Map<String,dynamic>` fallback
 values. `flutter test test/features`: 18/18 pass (incl. the earlier use-case tests);
 `flutter analyze`: clean.
-**Action:** Accepted as-is — reviewed all 7 tests, confirmed the yesterday-date
-verification, the network-vs-server exception distinction, and the offline/cache-empty paths are all
-correctly covered.
+
+**Action:** Accepted as-is — reviewed all 7 tests, confirmed the yesterday-date verification, the
+network-vs-server exception distinction, and the offline/cache-empty paths are all correctly
+covered.
+
 ---
 
 ## Prompt: Bloc tests for ExchangeRatesBloc and CurrencyDetailBloc (bloc_test + mocktail)
