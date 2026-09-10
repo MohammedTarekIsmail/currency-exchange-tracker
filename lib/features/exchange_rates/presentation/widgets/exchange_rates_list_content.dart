@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_bloc.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_state.dart';
@@ -38,12 +39,15 @@ class ExchangeRatesListContent extends StatelessWidget {
               if (state.isFromCache) CachedDataBanner(cachedAt: state.cachedAt),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () async {
+                  onRefresh: () {
+                    final completer = Completer<void>();
                     context.read<ExchangeRatesBloc>().add(
-                      ExchangeRatesRefreshed(),
+                      ExchangeRatesRefreshed(completer: completer),
                     );
+                    return completer.future;
                   },
                   child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.only(top: 12),
                     itemCount: state.rates.length,
                     itemBuilder: (context, index) {

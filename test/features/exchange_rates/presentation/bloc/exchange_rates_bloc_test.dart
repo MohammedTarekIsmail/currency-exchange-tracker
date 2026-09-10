@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:currency_exchange_tracker/core/error/exceptions.dart';
 import 'package:currency_exchange_tracker/core/network/network_info.dart';
@@ -29,7 +31,8 @@ void main() {
     ).thenAnswer((_) => const Stream<bool>.empty());
   });
 
-  ExchangeRatesBloc buildBloc() => ExchangeRatesBloc(getLatestRates, networkInfo);
+  ExchangeRatesBloc buildBloc() =>
+      ExchangeRatesBloc(getLatestRates, networkInfo);
 
   final tRates = [
     CurrencyRate(
@@ -49,22 +52,17 @@ void main() {
   group('ExchangeRatesStarted', () {
     blocTest<ExchangeRatesBloc, ExchangeRatesState>(
       'emits [Loading, Loaded] when the use case returns rates',
-      setUp: () => when(
-        () => getLatestRates(),
-      ).thenAnswer((_) async => tLoadedSnapshot),
+      setUp: () =>
+          when(() => getLatestRates()).thenAnswer((_) async => tLoadedSnapshot),
       build: buildBloc,
       act: (bloc) => bloc.add(ExchangeRatesStarted()),
-      expect: () => [
-        ExchangeRatesLoading(),
-        ExchangeRatesLoaded(tRates),
-      ],
+      expect: () => [ExchangeRatesLoading(), ExchangeRatesLoaded(tRates)],
     );
 
     blocTest<ExchangeRatesBloc, ExchangeRatesState>(
       'emits [Loading, Empty] when the use case returns no rates',
-      setUp: () => when(
-        () => getLatestRates(),
-      ).thenAnswer((_) async => tEmptySnapshot),
+      setUp: () =>
+          when(() => getLatestRates()).thenAnswer((_) async => tEmptySnapshot),
       build: buildBloc,
       act: (bloc) => bloc.add(ExchangeRatesStarted()),
       expect: () => [ExchangeRatesLoading(), ExchangeRatesEmpty()],
@@ -103,12 +101,49 @@ void main() {
   group('ExchangeRatesRefreshed', () {
     blocTest<ExchangeRatesBloc, ExchangeRatesState>(
       'emits only [Loaded] — no Loading spinner on a manual refresh',
-      setUp: () => when(
-        () => getLatestRates(),
-      ).thenAnswer((_) async => tLoadedSnapshot),
+      setUp: () =>
+          when(() => getLatestRates()).thenAnswer((_) async => tLoadedSnapshot),
       build: buildBloc,
       act: (bloc) => bloc.add(ExchangeRatesRefreshed()),
       expect: () => [ExchangeRatesLoaded(tRates)],
     );
+
+    group('completer (the future RefreshIndicator waits on)', () {
+      late Completer<void> completer;
+
+      setUp(() {
+        completer = Completer<void>();
+        when(() => getLatestRates()).thenAnswer((_) async => tLoadedSnapshot);
+      });
+
+      blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+        'completes once the fetch lands',
+        build: buildBloc,
+        act: (bloc) => bloc.add(ExchangeRatesRefreshed(completer: completer)),
+        verify: (_) => expect(completer.isCompleted, isTrue),
+      );
+
+      blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+        'completes even when the refresh emits no new state — rates only change '
+        'once a day, so a second pull usually rebuilds an identical Loaded and '
+        'Bloc suppresses it',
+        build: buildBloc,
+        seed: () => ExchangeRatesLoaded(tRates),
+        act: (bloc) => bloc.add(ExchangeRatesRefreshed(completer: completer)),
+        expect: () => <ExchangeRatesState>[],
+        verify: (_) => expect(completer.isCompleted, isTrue),
+      );
+
+      blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+        'completes when the fetch fails, so the spinner cannot get stuck',
+        setUp: () => when(
+          () => getLatestRates(),
+        ).thenThrow(const ServerException('boom')),
+        build: buildBloc,
+        act: (bloc) => bloc.add(ExchangeRatesRefreshed(completer: completer)),
+        expect: () => [const ExchangeRatesError('boom')],
+        verify: (_) => expect(completer.isCompleted, isTrue),
+      );
+    });
   });
 }

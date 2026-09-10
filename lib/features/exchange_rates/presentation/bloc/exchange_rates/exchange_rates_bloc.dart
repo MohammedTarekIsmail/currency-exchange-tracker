@@ -15,11 +15,13 @@ class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
   bool _wasOffline = false;
 
   ExchangeRatesBloc(this.getLatestRates, this.networkInfo)
-      : super(ExchangeRatesInitial()) {
+    : super(ExchangeRatesInitial()) {
     on<ExchangeRatesStarted>(_onStarted);
     on<ExchangeRatesRefreshed>(_onRefreshed);
 
-    _connectivitySubscription = networkInfo.onConnectivityChanged.listen((isConnected) {
+    _connectivitySubscription = networkInfo.onConnectivityChanged.listen((
+      isConnected,
+    ) {
       if (isConnected && _wasOffline) {
         add(ExchangeRatesRefreshed());
       }
@@ -32,15 +34,24 @@ class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
     _connectivitySubscription?.cancel();
     return super.close();
   }
-  Future<void> _onStarted(ExchangeRatesStarted event,
-      Emitter<ExchangeRatesState> emit,) async {
+
+  Future<void> _onStarted(
+    ExchangeRatesStarted event,
+    Emitter<ExchangeRatesState> emit,
+  ) async {
     emit(ExchangeRatesLoading());
     await _fetchRates(emit);
   }
 
-  Future<void> _onRefreshed(ExchangeRatesRefreshed event,
-      Emitter<ExchangeRatesState> emit,) async {
-    await _fetchRates(emit);
+  Future<void> _onRefreshed(
+    ExchangeRatesRefreshed event,
+    Emitter<ExchangeRatesState> emit,
+  ) async {
+    try {
+      await _fetchRates(emit);
+    } finally {
+      event.completer?.complete();
+    }
   }
 
   Future<void> _fetchRates(Emitter<ExchangeRatesState> emit) async {

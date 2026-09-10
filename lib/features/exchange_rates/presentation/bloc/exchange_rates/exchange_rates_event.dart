@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 
 abstract class ExchangeRatesEvent extends Equatable {
@@ -9,4 +11,13 @@ abstract class ExchangeRatesEvent extends Equatable {
 
 class ExchangeRatesStarted extends ExchangeRatesEvent {}
 
-class ExchangeRatesRefreshed extends ExchangeRatesEvent {}
+/// Re-fetches without passing through [ExchangeRatesLoading], so the list stays
+/// on screen while it refreshes.
+class ExchangeRatesRefreshed extends ExchangeRatesEvent {
+  const ExchangeRatesRefreshed({this.completer});
+
+  final Completer<void>? completer;
+
+  @override
+  List<Object?> get props => [completer];
+}
