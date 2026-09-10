@@ -248,3 +248,29 @@ color-coded change, intl-formatted date). No issues found; confirmed working vis
    **Action:** Edited — everything was fine except the color/icon getters, which put Flutter
    imports in the domain layer. Moved that logic into a presentation extension instead, so the
    domain stays pure Dart.
+
+---
+
+## Prompt: Unit tests for GetLatestRates and GetHistoricalRates (mocktail)
+
+**Full prompt:** Now write unit tests for GetLatestRates and GetHistoricalRates. Use mocktail to
+mock the repository. For GetLatestRates: test it calls the repository once and returns what the
+repository gives back, and test exceptions. For GetHistoricalRates: test it calls getRatesForDate
+the right number of times for the days parameter, test it extracts the right currency from each
+response, test it sorts oldest-first, test it skips a date when the currency is missing from that
+response, and test exception if the repository throws. Add an entry to AI_USAGE.md.
+**AI response summary:** Added `mocktail: ^1.0.4` to dev_dependencies (was only transitive via
+bloc_test) + `flutter pub get`. Created
+`test/features/exchange_rates/domain/usecases/get_latest_rates_test.dart` (4 tests: delegates once +
+returns the repo's `ExchangeRatesSnapshot` unchanged with `verifyNoMoreInteractions`; rethrows
+Network/Server/Cache exceptions via a table-driven group) and `get_historical_rates_test.dart` (7
+tests: `getRatesForDate` called `days` times for an explicit `days: 5` and `7` by default, using
+`any()` + `registerFallbackValue(DateTime)`; extracts only the requested currency and lowercases
+`'USD'`; sorts oldest-first given today-first stubs; skips a day whose response lacks the currency;
+rethrows Network/Server exceptions). A `dayAgo(n)` helper mirrors the use case's
+`DateTime(y,m,d).subtract(days)` so per-date stubs match by value. Exception tests use
+`expect(() => useCase(...), throwsA(same(exception)))` — the closure form, needed because
+`GetLatestRates.call` is a non-async arrow that throws synchronously. `flutter test` on the folder:
+11/11 pass; `flutter analyze`: clean.
+**Action:** Accepted as-is — reviewed both test files, confirmed correct mocking setup, good
+edge case coverage (missing currency, exception handling, sort order).
