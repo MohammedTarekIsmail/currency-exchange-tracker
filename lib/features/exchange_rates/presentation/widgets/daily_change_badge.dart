@@ -1,4 +1,5 @@
 import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/daily_change.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/daily_change_style.dart';
@@ -14,8 +15,9 @@ class DailyChangeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     final change = this.change;
-    final color = change?.color ?? AppColors.unchanged;
+    final color = change?.colorIn(palette) ?? palette.unchanged;
     final style = AppTextStyles.changeValue.copyWith(
       color: color,
       fontSize: dense ? null : 13,

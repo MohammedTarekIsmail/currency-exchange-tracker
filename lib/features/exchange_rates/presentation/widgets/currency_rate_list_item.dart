@@ -1,4 +1,4 @@
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/currency_rate.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/currency_flags.dart';
@@ -19,9 +19,11 @@ class CurrencyRateListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
+
     return Card(
-      color: AppColors.white,
-      shadowColor: AppColors.cardShadow,
+      color: context.colors.surface,
+      shadowColor: palette.cardShadow,
       surfaceTintColor: Colors.transparent,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       elevation: 3,
@@ -37,11 +39,14 @@ class CurrencyRateListItem extends StatelessWidget {
                 width: 46,
                 height: 46,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: context.colors.primary.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Text(flagFor(rate.code), style: const TextStyle(fontSize: 24)),
+                  child: Text(
+                    flagFor(rate.code),
+                    style: const TextStyle(fontSize: 24),
+                  ),
                 ),
               ),
               const SizedBox(width: 14),
@@ -51,7 +56,12 @@ class CurrencyRateListItem extends StatelessWidget {
                   children: [
                     Text(rate.name, style: AppTextStyles.currencyName),
                     const SizedBox(height: 2),
-                    Text(rate.code, style: AppTextStyles.currencyCode),
+                    Text(
+                      rate.code,
+                      style: AppTextStyles.currencyCode.copyWith(
+                        color: palette.textSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),

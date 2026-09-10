@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_bloc.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_state.dart';
@@ -37,7 +37,7 @@ class ExchangeRatesListContent extends StatelessWidget {
               child: ErrorRetryView(
                 message: 'No exchange rates available right now.',
                 icon: Icons.currency_exchange,
-                iconColor: AppColors.textSecondary,
+                iconColor: context.palette.textSecondary,
                 actionLabel: 'Refresh',
                 onRetry: () => context.read<ExchangeRatesBloc>().add(
                   ExchangeRatesStarted(),

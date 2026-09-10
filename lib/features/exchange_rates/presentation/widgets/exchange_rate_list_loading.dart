@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 
 class ExchangeRatesListLoading extends StatelessWidget {
   const ExchangeRatesListLoading({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Shimmer.fromColors(
-      baseColor: AppColors.shimmerBase,
-      highlightColor: AppColors.shimmerHighlight,
+      baseColor: palette.shimmerBase,
+      highlightColor: palette.shimmerHighlight,
       child: ListView.builder(
         itemCount: 5,
-        itemBuilder: (context, index) => Card(
+        itemBuilder: (_, index) => Card(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -22,10 +23,7 @@ class ExchangeRatesListLoading extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
-                const CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppColors.white,
-                ),
+                CircleAvatar(radius: 20, backgroundColor: palette.shimmerBase),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -34,13 +32,13 @@ class ExchangeRatesListLoading extends StatelessWidget {
                       Container(
                         height: 14,
                         width: 100,
-                        color: AppColors.white,
+                        color: palette.shimmerBase,
                       ),
                       const SizedBox(height: 6),
                       Container(
                         height: 10,
                         width: 50,
-                        color: AppColors.white,
+                        color: palette.shimmerBase,
                       ),
                     ],
                   ),
@@ -51,13 +49,13 @@ class ExchangeRatesListLoading extends StatelessWidget {
                     Container(
                       height: 14,
                       width: 60,
-                      color: AppColors.white,
+                      color: palette.shimmerBase,
                     ),
                     const SizedBox(height: 6),
                     Container(
                       height: 18,
                       width: 70,
-                      color: AppColors.white,
+                      color: palette.shimmerBase,
                     ),
                   ],
                 ),

@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/historical_rate_point.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/rate_format.dart';
@@ -21,11 +21,18 @@ class HistoricalRateChart extends StatelessWidget {
       return SizedBox(
         height: kChartHeight,
         child: Center(
-          child: Text('No chart data to display.', style: AppTextStyles.chartAxisLabel),
+          child: Text(
+            'No chart data to display.',
+            style: AppTextStyles.chartAxisLabel.copyWith(
+              color: context.palette.textSecondary,
+            ),
+          ),
         ),
       );
     }
 
+    final palette = context.palette;
+    final lineColor = context.colors.primary;
     final data = [...points]..sort((a, b) => a.date.compareTo(b.date));
     final spots = <FlSpot>[
       for (var i = 0; i < data.length; i++) FlSpot(i.toDouble(), data[i].rate),
@@ -37,7 +44,9 @@ class HistoricalRateChart extends StatelessWidget {
     final minRate = rates.reduce(math.min);
     final maxRate = rates.reduce(math.max);
     final span = maxRate - minRate;
-    final padding = span > 0 ? span * 0.15 : math.max(maxRate.abs() * 0.05, 0.01);
+    final padding = span > 0
+        ? span * 0.15
+        : math.max(maxRate.abs() * 0.05, 0.01);
     final minY = math.max(minRate - padding, 0.0);
     final maxY = maxRate + padding;
     final yInterval = (maxY - minY) / 4;
@@ -59,24 +68,39 @@ class HistoricalRateChart extends StatelessWidget {
               drawVerticalLine: false,
               horizontalInterval: safeYInterval,
               getDrawingHorizontalLine: (_) =>
-              const FlLine(color: AppColors.chartGridLine, strokeWidth: 1),
+                  FlLine(color: palette.chartGridLine, strokeWidth: 1),
             ),
             borderData: FlBorderData(show: false),
             titlesData: FlTitlesData(
-              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
               bottomTitles: AxisTitles(
-                axisNameWidget: Text('Date', style: AppTextStyles.chartAxisLabel),
+                axisNameWidget: Text(
+                  'Date',
+                  style: AppTextStyles.chartAxisLabel.copyWith(
+                    color: palette.textSecondary,
+                  ),
+                ),
                 axisNameSize: 18,
                 sideTitles: SideTitles(
                   showTitles: true,
                   interval: 1,
                   reservedSize: 28,
-                  getTitlesWidget: (value, meta) => ChartBottomTitles.build(value, meta, data),
+                  getTitlesWidget: (value, meta) =>
+                      ChartBottomTitles.build(value, meta, data),
                 ),
               ),
               leftTitles: AxisTitles(
-                axisNameWidget: Text('Rate (EGP)', style: AppTextStyles.chartAxisLabel),
+                axisNameWidget: Text(
+                  'Rate (EGP)',
+                  style: AppTextStyles.chartAxisLabel.copyWith(
+                    color: palette.textSecondary,
+                  ),
+                ),
                 axisNameSize: 18,
                 sideTitles: SideTitles(
                   showTitles: true,
@@ -89,14 +113,14 @@ class HistoricalRateChart extends StatelessWidget {
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
                 tooltipBorderRadius: BorderRadius.circular(8),
-                getTooltipColor: (_) => AppColors.chartTooltipBackground,
+                getTooltipColor: (_) => palette.chartTooltipBackground,
                 getTooltipItems: (touchedSpots) => [
                   for (final spot in touchedSpots)
                     LineTooltipItem(
                       '${DateFormat('MMM d').format(data[spot.x.round().clamp(0, data.length - 1)].date)}\n'
-                          '${formatAxisRate(spot.y)} EGP',
+                      '${formatAxisRate(spot.y)} EGP',
                       TextStyle(
-                        color: AppColors.chartTooltipText,
+                        color: palette.chartTooltipText,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -109,12 +133,12 @@ class HistoricalRateChart extends StatelessWidget {
                 spots: spots,
                 isCurved: true,
                 preventCurveOverShooting: true,
-                color: AppColors.primary,
+                color: lineColor,
                 barWidth: 3,
                 dotData: FlDotData(show: data.length <= 14),
                 belowBarData: BarAreaData(
                   show: true,
-                  color: AppColors.primary.withValues(alpha: 0.12),
+                  color: lineColor.withValues(alpha: 0.12),
                 ),
               ),
             ],

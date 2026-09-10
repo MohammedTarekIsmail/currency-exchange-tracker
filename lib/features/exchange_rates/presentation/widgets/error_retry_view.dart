@@ -1,4 +1,4 @@
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -14,7 +14,7 @@ class ErrorRetryView extends StatelessWidget {
   final String message;
   final VoidCallback onRetry;
   final IconData icon;
-  final Color iconColor;
+  final Color? iconColor;
   final String actionLabel;
 
   const ErrorRetryView({
@@ -22,7 +22,7 @@ class ErrorRetryView extends StatelessWidget {
     required this.message,
     required this.onRetry,
     this.icon = Icons.error_outline,
-    this.iconColor = AppColors.error,
+    this.iconColor,
     this.actionLabel = 'Retry',
   });
 
@@ -34,12 +34,14 @@ class ErrorRetryView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: iconColor),
+            Icon(icon, size: 48, color: iconColor ?? context.colors.error),
             const Gap(12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: AppTextStyles.errorMessage,
+              style: AppTextStyles.errorMessage.copyWith(
+                color: context.palette.textSecondary,
+              ),
             ),
             const Gap(16),
             ElevatedButton(onPressed: onRetry, child: Text(actionLabel)),

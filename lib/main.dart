@@ -18,6 +18,8 @@ class MyApp extends StatelessWidget {
       title: 'Currency Exchange App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: const ExchangeRatesListScreen(),
     );
   }

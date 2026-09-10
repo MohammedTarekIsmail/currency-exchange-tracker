@@ -1,4 +1,4 @@
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/domain/entities/currency_rate.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_bloc.dart';
@@ -51,8 +51,8 @@ class CurrencyDetailContent extends StatelessWidget {
               }
 
               return Card(
-                color: AppColors.white,
-                shadowColor: AppColors.cardShadow,
+                color: context.colors.surface,
+                shadowColor: context.palette.cardShadow,
                 surfaceTintColor: Colors.transparent,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -80,8 +80,8 @@ class _RateSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.white,
-      shadowColor: AppColors.cardShadow,
+      color: context.colors.surface,
+      shadowColor: context.palette.cardShadow,
       surfaceTintColor: Colors.transparent,
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -100,14 +100,21 @@ class _RateSummary extends StatelessWidget {
                 DailyChangeBadge(change: rate.dailyChange),
                 if (rate.dailyChange != null) ...[
                   const Gap(8),
-                  const Text('today', style: AppTextStyles.currencyCode),
+                  Text(
+                    'today',
+                    style: AppTextStyles.currencyCode.copyWith(
+                      color: context.palette.textSecondary,
+                    ),
+                  ),
                 ],
               ],
             ),
             const Gap(12),
             Text(
               'Last updated ${DateFormat.yMMMMd().format(rate.lastUpdated)}',
-              style: AppTextStyles.currencyCode,
+              style: AppTextStyles.currencyCode.copyWith(
+                color: context.palette.textSecondary,
+              ),
             ),
           ],
         ),

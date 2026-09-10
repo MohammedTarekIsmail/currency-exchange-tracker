@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
+import 'package:currency_exchange_tracker/core/theme/app_palette.dart';
 
 const double kChartHeight = 220;
 
@@ -10,9 +10,10 @@ class HistoricalRateChartLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = context.palette;
     return Shimmer.fromColors(
-      baseColor: AppColors.shimmerBase,
-      highlightColor: AppColors.shimmerHighlight,
+      baseColor: palette.shimmerBase,
+      highlightColor: palette.shimmerHighlight,
       child: SizedBox(
         height: kChartHeight,
         child: Padding(
@@ -23,7 +24,7 @@ class HistoricalRateChartLoading extends StatelessWidget {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: palette.shimmerBase,
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
@@ -37,7 +38,7 @@ class HistoricalRateChartLoading extends StatelessWidget {
                       width: 26,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: palette.shimmerBase,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
