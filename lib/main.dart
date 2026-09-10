@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Currency Exchange App',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       home: const ExchangeRatesListScreen(),
     );
