@@ -25,7 +25,7 @@ class CurrencyRate extends Equatable {
   final double rate;
 
   /// Movement since yesterday, computed by the app from two API calls.
-  final DailyChange dailyChange;
+  final DailyChange? dailyChange;
 
   /// The day the underlying rates are for (the API updates once per day).
   final DateTime lastUpdated;

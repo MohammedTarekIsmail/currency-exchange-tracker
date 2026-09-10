@@ -21,3 +21,12 @@ class ExchangeRatesRefreshed extends ExchangeRatesEvent {
   @override
   List<Object?> get props => [completer];
 }
+
+class ExchangeRatesConnectivityChanged extends ExchangeRatesEvent {
+  const ExchangeRatesConnectivityChanged(this.isConnected);
+
+  final bool isConnected;
+
+  @override
+  List<Object?> get props => [isConnected];
+}

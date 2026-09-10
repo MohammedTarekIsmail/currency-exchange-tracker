@@ -19,15 +19,24 @@ class ExchangeRatesLoaded extends ExchangeRatesState {
   /// API, and — when they were — the time they were cached.
   final bool isFromCache;
   final DateTime? cachedAt;
+  final bool isOffline;
 
   const ExchangeRatesLoaded(
     this.rates, {
     this.isFromCache = false,
     this.cachedAt,
+    this.isOffline = false,
   });
 
+  ExchangeRatesLoaded copyWith({bool? isOffline}) => ExchangeRatesLoaded(
+    rates,
+    isFromCache: isFromCache,
+    cachedAt: cachedAt,
+    isOffline: isOffline ?? this.isOffline,
+  );
+
   @override
-  List<Object?> get props => [rates, isFromCache, cachedAt];
+  List<Object?> get props => [rates, isFromCache, cachedAt, isOffline];
 }
 
 class ExchangeRatesError extends ExchangeRatesState {

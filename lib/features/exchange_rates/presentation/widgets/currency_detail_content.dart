@@ -4,9 +4,9 @@ import 'package:currency_exchange_tracker/features/exchange_rates/domain/entitie
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_bloc.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_event.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/currency_detail/currency_detail_state.dart';
-import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/daily_change_style.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/utils/rate_format.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/chart/historical_chart_loading.dart';
+import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/daily_change_badge.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/chart/historical_rate_chart.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/widgets/error_retry_view.dart';
 import 'package:flutter/material.dart';
@@ -79,9 +79,6 @@ class _RateSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final change = rate.dailyChange;
-    final sign = change.amount > 0 ? '+' : '';
-
     return Card(
       color: AppColors.white,
       shadowColor: AppColors.cardShadow,
@@ -100,35 +97,11 @@ class _RateSummary extends StatelessWidget {
             const Gap(10),
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: change.color.withValues(
-                      alpha: AppColors.badgeBackgroundOpacity,
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(change.icon, size: 16, color: change.color),
-                      const Gap(4),
-                      Text(
-                        '$sign${formatChangeAmount(change.amount)} EGP '
-                        '($sign${change.percent.toStringAsFixed(2)}%)',
-                        style: AppTextStyles.changeValue.copyWith(
-                          color: change.color,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Gap(8),
-                const Text('today', style: AppTextStyles.currencyCode),
+                DailyChangeBadge(change: rate.dailyChange),
+                if (rate.dailyChange != null) ...[
+                  const Gap(8),
+                  const Text('today', style: AppTextStyles.currencyCode),
+                ],
               ],
             ),
             const Gap(12),

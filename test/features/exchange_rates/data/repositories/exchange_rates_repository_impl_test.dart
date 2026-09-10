@@ -84,13 +84,14 @@ void main() {
         // USD: 1/0.02 = 50 today, 1/0.025 = 40 yesterday -> +10 EGP / +25%.
         final usd = snapshot.rates.firstWhere((r) => r.code == 'USD');
         expect(usd.rate, closeTo(50, 1e-9));
-        expect(usd.dailyChange.amount, closeTo(10, 1e-9));
-        expect(usd.dailyChange.percent, closeTo(25, 1e-9));
+        expect(usd.dailyChange!.amount, closeTo(10, 1e-9));
+        expect(usd.dailyChange!.percent, closeTo(25, 1e-9));
 
-        // EUR unchanged day over day.
+        // EUR unchanged day over day — a real zero, not a missing value.
         final eur = snapshot.rates.firstWhere((r) => r.code == 'EUR');
-        expect(eur.dailyChange.amount, closeTo(0, 1e-9));
-        expect(eur.dailyChange.percent, closeTo(0, 1e-9));
+        expect(eur.dailyChange, isNotNull);
+        expect(eur.dailyChange!.amount, closeTo(0, 1e-9));
+        expect(eur.dailyChange!.percent, closeTo(0, 1e-9));
       },
     );
   });
@@ -109,13 +110,9 @@ void main() {
       expect(snapshot.isFromCache, isTrue);
       expect(snapshot.cachedAt, tCachedAt);
       expect(snapshot.rates, hasLength(5));
-      // No cached "yesterday" to diff against -> every change is flat.
-      expect(
-        snapshot.rates.every(
-          (r) => r.dailyChange.amount == 0 && r.dailyChange.percent == 0,
-        ),
-        isTrue,
-      );
+      // No cached "yesterday" to diff against -> unknown, not flat. A zero
+      // here would tell the user the rate held steady, which we don't know.
+      expect(snapshot.rates.every((r) => r.dailyChange == null), isTrue);
 
       verifyNever(() => remote.fetchLatestRates());
       verifyNever(() => remote.fetchRatesForDate(any()));
@@ -169,8 +166,7 @@ void main() {
         // Rates are real; only the day-over-day comparison is missing.
         final usd = snapshot.rates.firstWhere((r) => r.code == 'USD');
         expect(usd.rate, closeTo(50, 1e-9));
-        expect(usd.dailyChange.amount, 0);
-        expect(usd.dailyChange.percent, 0);
+        expect(usd.dailyChange, isNull);
       },
     );
 

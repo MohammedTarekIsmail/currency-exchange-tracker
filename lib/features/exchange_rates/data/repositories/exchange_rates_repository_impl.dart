@@ -153,14 +153,14 @@ class ExchangeRatesRepositoryImpl implements ExchangeRatesRepository {
   }
 
   /// Day-over-day movement, expressed in the displayed "EGP per 1 unit" terms
-  /// so it lines up with [CurrencyRate.rate]. Falls back to flat when there's
-  /// no usable yesterday value.
-  DailyChange _dailyChange({
+  /// so it lines up with [CurrencyRate.rate]. Returns null when there's no usable
+  /// yesterday value.
+  DailyChange? _dailyChange({
     required double rawToday,
     double? rawYesterday,
   }) {
     if (rawYesterday == null || rawYesterday <= 0) {
-      return const DailyChange.zero();
+      return null;
     }
     final todayEgp = _toEgpPerUnit(rawToday);
     final yesterdayEgp = _toEgpPerUnit(rawYesterday);

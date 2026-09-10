@@ -18,15 +18,11 @@ class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
     : super(ExchangeRatesInitial()) {
     on<ExchangeRatesStarted>(_onStarted);
     on<ExchangeRatesRefreshed>(_onRefreshed);
+    on<ExchangeRatesConnectivityChanged>(_onConnectivityChanged);
 
-    _connectivitySubscription = networkInfo.onConnectivityChanged.listen((
-      isConnected,
-    ) {
-      if (isConnected && _wasOffline) {
-        add(ExchangeRatesRefreshed());
-      }
-      _wasOffline = !isConnected;
-    });
+    _connectivitySubscription = networkInfo.onConnectivityChanged.listen(
+      (isConnected) => add(ExchangeRatesConnectivityChanged(isConnected)),
+    );
   }
 
   @override
@@ -54,6 +50,23 @@ class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
     }
   }
 
+  Future<void> _onConnectivityChanged(
+    ExchangeRatesConnectivityChanged event,
+    Emitter<ExchangeRatesState> emit,
+  ) async {
+    final reconnected = event.isConnected && _wasOffline;
+    _wasOffline = !event.isConnected;
+
+    final current = state;
+    if (current is ExchangeRatesLoaded) {
+      emit(current.copyWith(isOffline: _wasOffline));
+    }
+
+    if (reconnected) {
+      await _fetchRates(emit);
+    }
+  }
+
   Future<void> _fetchRates(Emitter<ExchangeRatesState> emit) async {
     try {
       final snapshot = await getLatestRates();
@@ -65,6 +78,7 @@ class ExchangeRatesBloc extends Bloc<ExchangeRatesEvent, ExchangeRatesState> {
             snapshot.rates,
             isFromCache: snapshot.isFromCache,
             cachedAt: snapshot.cachedAt,
+            isOffline: _wasOffline,
           ),
         );
       }

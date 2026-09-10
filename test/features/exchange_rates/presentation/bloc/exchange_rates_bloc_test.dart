@@ -20,6 +20,7 @@ class _MockNetworkInfo extends Mock implements NetworkInfo {}
 void main() {
   late _MockGetLatestRates getLatestRates;
   late _MockNetworkInfo networkInfo;
+  late StreamController<bool> connectivity;
 
   setUp(() {
     getLatestRates = _MockGetLatestRates();
@@ -96,6 +97,68 @@ void main() {
         expect: () => [ExchangeRatesLoading(), ExchangeRatesError(c.message)],
       );
     });
+  });
+
+  group('ExchangeRatesConnectivityChanged', () {
+    blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+      'losing the connection flags what is on screen without refetching',
+      build: buildBloc,
+      seed: () => ExchangeRatesLoaded(tRates),
+      act: (bloc) => bloc.add(const ExchangeRatesConnectivityChanged(false)),
+      expect: () => [ExchangeRatesLoaded(tRates, isOffline: true)],
+      verify: (_) => verifyNever(() => getLatestRates()),
+    );
+
+    blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+      'emits nothing when there are no rates on screen to flag',
+      build: buildBloc,
+      act: (bloc) => bloc.add(const ExchangeRatesConnectivityChanged(false)),
+      expect: () => <ExchangeRatesState>[],
+    );
+
+    blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+      'reconnecting clears the flag and refetches',
+      setUp: () => when(
+        () => getLatestRates(),
+      ).thenAnswer((_) async => tLoadedSnapshot),
+      build: buildBloc,
+      seed: () => ExchangeRatesLoaded(tRates),
+      act: (bloc) => bloc
+        ..add(const ExchangeRatesConnectivityChanged(false))
+        ..add(const ExchangeRatesConnectivityChanged(true)),
+      expect: () => [
+        ExchangeRatesLoaded(tRates, isOffline: true),
+        ExchangeRatesLoaded(tRates),
+      ],
+      verify: (_) => verify(() => getLatestRates()).called(1),
+    );
+
+    blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+      'a connected event while already online does not refetch',
+      build: buildBloc,
+      seed: () => ExchangeRatesLoaded(tRates),
+      act: (bloc) => bloc.add(const ExchangeRatesConnectivityChanged(true)),
+      expect: () => <ExchangeRatesState>[],
+      verify: (_) => verifyNever(() => getLatestRates()),
+    );
+
+    blocTest<ExchangeRatesBloc, ExchangeRatesState>(
+      'the NetworkInfo stream is what drives all of the above',
+      setUp: () {
+        connectivity = StreamController<bool>();
+        when(
+          () => networkInfo.onConnectivityChanged,
+        ).thenAnswer((_) => connectivity.stream);
+      },
+      build: buildBloc,
+      seed: () => ExchangeRatesLoaded(tRates),
+      act: (_) async {
+        connectivity.add(false);
+        await Future<void>.delayed(Duration.zero);
+      },
+      tearDown: () => connectivity.close(),
+      expect: () => [ExchangeRatesLoaded(tRates, isOffline: true)],
+    );
   });
 
   group('ExchangeRatesRefreshed', () {

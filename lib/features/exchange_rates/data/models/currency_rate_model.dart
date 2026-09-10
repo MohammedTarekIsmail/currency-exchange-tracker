@@ -14,7 +14,7 @@ class CurrencyRateModel extends CurrencyRate {
     required String code,
     required String name,
     required double rawRate,
-    required DailyChange dailyChange,
+    required DailyChange? dailyChange,
     required DateTime lastUpdated,
   }) {
     return CurrencyRateModel(

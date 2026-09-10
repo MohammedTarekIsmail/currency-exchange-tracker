@@ -6,14 +6,24 @@ import 'package:currency_exchange_tracker/core/theme/app_text_styles.dart';
 
 class CachedDataBanner extends StatelessWidget {
   final DateTime? cachedAt;
+  final bool isFromCache;
+  final bool isOffline;
 
-  const CachedDataBanner({super.key, required this.cachedAt});
+  const CachedDataBanner({
+    super.key,
+    required this.cachedAt,
+    required this.isFromCache,
+    required this.isOffline,
+  });
 
   @override
   Widget build(BuildContext context) {
     final formattedTime = cachedAt != null
         ? DateFormat('MMM d, h:mm a').format(cachedAt!)
         : 'unknown time';
+    final message = isFromCache
+        ? 'Showing cached data · $formattedTime'
+        : "You're offline · rates may be out of date";
 
     return Container(
       width: double.infinity,
@@ -21,14 +31,13 @@ class CachedDataBanner extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          const Icon(Icons.wifi_off, size: 16, color: AppColors.textSecondary),
-          const Gap(8),
-          Expanded(
-            child: Text(
-              'Showing cached data · $formattedTime',
-              style: AppTextStyles.currencyCode,
-            ),
+          Icon(
+            isOffline ? Icons.wifi_off : Icons.cloud_off,
+            size: 16,
+            color: AppColors.textSecondary,
           ),
+          const Gap(8),
+          Expanded(child: Text(message, style: AppTextStyles.currencyCode)),
         ],
       ),
     );

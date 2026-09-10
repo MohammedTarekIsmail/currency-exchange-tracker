@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:currency_exchange_tracker/core/theme/app_colors.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_bloc.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_event.dart';
 import 'package:currency_exchange_tracker/features/exchange_rates/presentation/bloc/exchange_rates/exchange_rates_state.dart';
@@ -30,22 +31,34 @@ class ExchangeRatesListContent extends StatelessWidget {
         }
 
         if (state is ExchangeRatesEmpty) {
-          return const Center(child: Text('No rates available right now.'));
+          return RefreshIndicator(
+            onRefresh: () => _refresh(context),
+            child: _PullableBody(
+              child: ErrorRetryView(
+                message: 'No exchange rates available right now.',
+                icon: Icons.currency_exchange,
+                iconColor: AppColors.textSecondary,
+                actionLabel: 'Refresh',
+                onRetry: () => context.read<ExchangeRatesBloc>().add(
+                  ExchangeRatesStarted(),
+                ),
+              ),
+            ),
+          );
         }
 
         if (state is ExchangeRatesLoaded) {
           return Column(
             children: [
-              if (state.isFromCache) CachedDataBanner(cachedAt: state.cachedAt),
+              if (state.isFromCache || state.isOffline)
+                CachedDataBanner(
+                  cachedAt: state.cachedAt,
+                  isFromCache: state.isFromCache,
+                  isOffline: state.isOffline,
+                ),
               Expanded(
                 child: RefreshIndicator(
-                  onRefresh: () {
-                    final completer = Completer<void>();
-                    context.read<ExchangeRatesBloc>().add(
-                      ExchangeRatesRefreshed(completer: completer),
-                    );
-                    return completer.future;
-                  },
+                  onRefresh: () => _refresh(context),
                   child: ListView.builder(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.only(top: 12),
@@ -73,6 +86,33 @@ class ExchangeRatesListContent extends StatelessWidget {
 
         return const SizedBox.shrink();
       },
+    );
+  }
+
+  Future<void> _refresh(BuildContext context) {
+    final completer = Completer<void>();
+    context.read<ExchangeRatesBloc>().add(
+      ExchangeRatesRefreshed(completer: completer),
+    );
+    return completer.future;
+  }
+}
+
+class _PullableBody extends StatelessWidget {
+  const _PullableBody({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: child,
+        ),
+      ),
     );
   }
 }
