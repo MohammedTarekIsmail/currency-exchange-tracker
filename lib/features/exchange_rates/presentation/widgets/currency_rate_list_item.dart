@@ -22,44 +22,63 @@ class CurrencyRateListItem extends StatelessWidget {
 
     return Card(
       color: AppColors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
+      shadowColor: AppColors.cardShadow,
+      surfaceTintColor: Colors.transparent,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: InkWell(
         onTap: onTap,
-        leading: SizedBox(
-          width: 40,
-          height: 40,
-          child: Center(
-            child: Text(
-              flagFor(rate.code),
-              style: const TextStyle(fontSize: 30),
-            ),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(flagFor(rate.code), style: const TextStyle(fontSize: 24)),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(rate.name, style: AppTextStyles.currencyName),
+                    const SizedBox(height: 2),
+                    Text(rate.code, style: AppTextStyles.currencyCode),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${rate.rate.toStringAsFixed(2)} EGP',
+                    style: AppTextStyles.rateValue,
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: change.color.withValues(alpha: AppColors.badgeBackgroundOpacity),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '$sign${change.amount.toStringAsFixed(2)} ($sign${change.percent.toStringAsFixed(2)}%)',
+                      style: AppTextStyles.changeValue.copyWith(color: change.color),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ),
-        title: Text(rate.name),
-        subtitle: Text(rate.code),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${rate.rate.toStringAsFixed(2)} EGP',
-              style: AppTextStyles.rateValue,
-            ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: change.color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                '$sign${change.amount.toStringAsFixed(2)} ($sign${change.percent.toStringAsFixed(2)}%)',
-                style: AppTextStyles.changeValue.copyWith(color: change.color),
-              ),
-            ),
-          ],
         ),
       ),
     );

@@ -51,7 +51,9 @@ class CurrencyDetailContent extends StatelessWidget {
 
               return Card(
                 color: AppColors.white,
-                elevation: 1,
+                shadowColor: AppColors.cardShadow,
+                surfaceTintColor: Colors.transparent,
+                elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -80,7 +82,10 @@ class _RateSummary extends StatelessWidget {
     final sign = change.amount > 0 ? '+' : '';
 
     return Card(
-      elevation: 1,
+      color: AppColors.white,
+      shadowColor: AppColors.cardShadow,
+      surfaceTintColor: Colors.transparent,
+      elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -95,12 +100,9 @@ class _RateSummary extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: change.color.withValues(alpha: 0.12),
+                    color: change.color.withValues(alpha: AppColors.badgeBackgroundOpacity),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -110,7 +112,7 @@ class _RateSummary extends StatelessWidget {
                       const Gap(4),
                       Text(
                         '$sign${change.amount.toStringAsFixed(2)} EGP '
-                        '($sign${change.percent.toStringAsFixed(2)}%)',
+                            '($sign${change.percent.toStringAsFixed(2)}%)',
                         style: AppTextStyles.changeValue.copyWith(
                           color: change.color,
                           fontSize: 13,

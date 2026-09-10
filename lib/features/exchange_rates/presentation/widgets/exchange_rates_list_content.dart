@@ -44,6 +44,7 @@ class ExchangeRatesListContent extends StatelessWidget {
                     );
                   },
                   child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 12),
                     itemCount: state.rates.length,
                     itemBuilder: (context, index) {
                       final rate = state.rates[index];
